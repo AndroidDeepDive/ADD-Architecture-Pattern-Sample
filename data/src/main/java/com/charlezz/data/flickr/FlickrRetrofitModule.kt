@@ -1,5 +1,6 @@
 package com.charlezz.data.flickr
 
+import com.charlezz.data.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,13 +16,13 @@ import retrofit2.converter.scalars.ScalarsConverterFactory
 @Module
 object FlickrRetrofitModule {
 
-    // TODO: 2021/09/08 API_KEY 숨기기
     @Provides
     fun providesIntercepter():Interceptor{
+
         return Interceptor { chain->
             var request = chain.request()
             val newUrl = request.url().newBuilder()
-                .addQueryParameter("api_key", "82373875cee5bbf255dc5a0be0aba815")
+                .addQueryParameter("api_key", "${BuildConfig.API_KEY}")
                 .addQueryParameter("format", "json")
                 .addQueryParameter("nojsoncallback","1")
                 .build()
