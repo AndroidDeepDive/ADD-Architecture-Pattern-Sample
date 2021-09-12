@@ -1,4 +1,5 @@
 import Dependencies.applyAndroidX
+import Dependencies.applyGlide
 import Dependencies.applyHilt
 import Dependencies.applyRetrofit2
 import Dependencies.applyTest
@@ -48,6 +49,7 @@ dependencies {
     applyTest()
     applyRetrofit2()
     applyHilt()
+    applyGlide()
 }
 kapt {
     correctErrorTypes = true

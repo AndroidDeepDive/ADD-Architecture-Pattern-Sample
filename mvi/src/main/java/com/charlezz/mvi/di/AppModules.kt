@@ -1,4 +1,4 @@
-package com.charlezz.mvvm.di
+package com.charlezz.mvi.di
 
 import com.charlezz.data.flickr.FlickrPhotosRepository
 import com.charlezz.data.flickr.FlickrService
