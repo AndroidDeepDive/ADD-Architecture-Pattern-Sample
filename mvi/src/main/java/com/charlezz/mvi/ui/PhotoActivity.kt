@@ -10,7 +10,6 @@ import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
-import com.charlezz.domain.usecase.SearchUseCase
 import com.charlezz.mvi.R
 import com.charlezz.mvi.databinding.ActivityPhotoBinding
 import com.charlezz.mvi.ui.base.BaseActivity
@@ -21,13 +20,10 @@ import javax.inject.Inject
 class PhotoActivity : BaseActivity<PhotoAction, PhotoState, PhotoViewModel>() {
 
     @Inject
-    lateinit var searchUseCase: SearchUseCase
-
-    @Inject
     lateinit var assistedFactory: PhotoViewModel.PhotoViewModelFactory
 
     override val viewModel: PhotoViewModel by viewModels {
-        PhotoViewModel.Factory(assistedFactory, PhotoState.initialize())
+        PhotoViewModel.Factory(assistedFactory)
     }
 
     private val adapter = PhotoAdapter()
@@ -52,7 +48,7 @@ class PhotoActivity : BaseActivity<PhotoAction, PhotoState, PhotoViewModel>() {
         binding.recyclerView.layoutManager = layoutManager
 
         binding.search.setOnClickListener {
-            viewModel.handleAction(
+            viewModel.setAction(
                 PhotoAction.SearchKeyword(
                     binding.editText.text.toString()
                 )
@@ -65,9 +61,7 @@ class PhotoActivity : BaseActivity<PhotoAction, PhotoState, PhotoViewModel>() {
     }
 
     private fun initData() {
-        viewModel.handleAction(
-            PhotoAction.Initialize
-        )
+        viewModel.setAction(PhotoAction.Initialize)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -83,12 +77,14 @@ class PhotoActivity : BaseActivity<PhotoAction, PhotoState, PhotoViewModel>() {
         ).toInt()
     }
 
-    override fun render(state: PhotoState) {
+    override fun render(state: PhotoState) = when(state) {
+        is PhotoState.List -> handleListState(state)
+        is PhotoState.Unitialized -> Unit
+    }
+
+    private fun handleListState(state: PhotoState.List) {
         lifecycleScope.launch {
-            with(binding) {
-                progressBar.isVisible = state.isLoading
-                adapter.submitData(state.photoData)
-            }
+            adapter.submitData(state.photoData)
         }
     }
 

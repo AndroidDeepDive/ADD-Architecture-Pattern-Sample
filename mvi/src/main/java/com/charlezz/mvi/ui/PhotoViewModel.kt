@@ -3,6 +3,7 @@ package com.charlezz.mvi.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import androidx.paging.map
 import com.charlezz.domain.usecase.SearchUseCase
 import com.charlezz.mvi.ui.base.BaseViewModel
@@ -19,45 +20,31 @@ class PhotoViewModel @AssistedInject constructor(
 
     override fun handleAction(action: PhotoAction) {
         when (action) {
-            is PhotoAction.Initialize -> {
-                viewModelScope.launch {
-                    setState(action) {
-                        copy(
-                            isLoading = true
-                        )
-                    }
-                    searchUseCase("")
-                        .map { pagingData -> pagingData.map { PhotoUiModel(it) } }
-                        .collectLatest { photoData ->
-                            setState(action) {
-                                copy(
-                                    photoData = photoData,
-                                    isLoading = false
-                                )
-                            }
-                        }
-                }
-            }
-            is PhotoAction.SearchKeyword -> {
-                viewModelScope.launch {
-                    setState(action) {
-                        copy(
-                            isLoading = true
-                        )
-                    }
-                    searchUseCase(action.keyword)
-                        .map { pagingData -> pagingData.map { PhotoUiModel(it) } }
-                        .collectLatest { photoData ->
-                            setState(action) {
-                                copy(
-                                    photoData = photoData,
-                                    isLoading = false
-                                )
-                            }
-                        }
-                }
-            }
+            is PhotoAction.Initialize -> handleInitialize()
+            is PhotoAction.SearchKeyword -> handleSearchKeyword(action)
         }
+    }
+
+    private fun handleInitialize() = viewModelScope.launch {
+        searchUseCase("")
+            .map { pagingData -> pagingData.map { PhotoUiModel(it) } }
+            .cachedIn(viewModelScope)
+            .collectLatest { photoData ->
+                setState {
+                    PhotoState.List(photoData = photoData)
+                }
+            }
+    }
+
+    private fun handleSearchKeyword(action: PhotoAction.SearchKeyword) = viewModelScope.launch {
+        searchUseCase(action.keyword)
+            .map { pagingData -> pagingData.map { PhotoUiModel(it) } }
+            .cachedIn(viewModelScope)
+            .collectLatest { photoData ->
+                setState {
+                    PhotoState.List(photoData = photoData)
+                }
+            }
     }
 
     @AssistedFactory
@@ -69,7 +56,7 @@ class PhotoViewModel @AssistedInject constructor(
 
     class Factory(
         private val assistedFactory: PhotoViewModelFactory,
-        private val state: PhotoState
+        private val state: PhotoState = PhotoState.Unitialized
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             return if (modelClass.isAssignableFrom(PhotoViewModel::class.java)) {

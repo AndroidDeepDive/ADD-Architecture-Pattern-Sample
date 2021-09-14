@@ -3,9 +3,10 @@ package com.charlezz.mvi.ui.base
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
-abstract class BaseActivity<A: Action, S: State, VM: BaseViewModel<A, S>>: AppCompatActivity() {
+abstract class BaseActivity<A : Action, S : State, VM : BaseViewModel<A, S>> : AppCompatActivity() {
 
     abstract val viewModel: VM
 
@@ -14,11 +15,10 @@ abstract class BaseActivity<A: Action, S: State, VM: BaseViewModel<A, S>>: AppCo
         observeState()
     }
 
-    private fun observeState() = lifecycleScope.launchWhenStarted {
-        viewModel.actionAndStateFlow.collect { (_, state) ->
+    private fun observeState() =
+        viewModel.uiStateFlow.onEach { state ->
             render(state)
-        }
-    }
+        }.launchIn(lifecycleScope)
 
     abstract fun render(state: S)
 
