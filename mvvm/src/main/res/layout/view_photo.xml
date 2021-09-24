@@ -7,7 +7,7 @@
 
         <variable
                 name="model"
-                type="com.charlezz.mvi.ui.PhotoUiModel" />
+                type="com.charlezz.mvvm.ui.PhotoUiModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
